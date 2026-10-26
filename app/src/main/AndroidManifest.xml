@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Lets us ask the user to exempt the app from battery optimization.
+         On Xiaomi/Samsung/Huawei/OnePlus in particular, background alarms for
+         apps that aren't exempted get silently delayed or dropped regardless
+         of AlarmManager API used — this is the practical fix for those OEMs
+         on top of the setExactAndAllowWhileIdle change in PriceWidgetProvider. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- Required to call setExactAndAllowWhileIdle() on Android 12+. Without
+         this, that call throws a SecurityException that was being silently
+         swallowed by the try/catch in scheduleAlarm() — no alarm ever got
+         scheduled, so the 30-minute refresh chain died right after the first
+         run. On Android 13+ the user still has to flip this on manually in
+         Settings (see the in-app prompt in WidgetConfigActivity); declaring
+         it here just makes that possible. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.ChandWidget"
+        android:supportsRtl="true">
+
+        <activity
+            android:name=".config.WidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ChandWidget.Config">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Widget 1: 3×3 — 3 rows, large text -->
+        <receiver
+            android:name=".widget.PriceWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_label_3x3">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.saeed.chandwidget.ACTION_MANUAL_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info" />
+        </receiver>
+
+        <!-- Widget 2: 2×2 — single price large -->
+        <receiver
+            android:name=".widget.PriceWidgetProviderSingle"
+            android:exported="true"
+            android:label="@string/widget_label_single">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.saeed.chandwidget.ACTION_MANUAL_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_single" />
+        </receiver>
+
+        <!-- Widget 3: 2×2 — 3 rows compact -->
+        <receiver
+            android:name=".widget.PriceWidgetProvider2x2"
+            android:exported="true"
+            android:label="@string/widget_label_2x2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.saeed.chandwidget.ACTION_MANUAL_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_2x2" />
+        </receiver>
+
+        <service
+            android:name=".widget.PriceUpdateService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+    </application>
+</manifest>

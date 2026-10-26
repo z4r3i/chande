@@ -1,0 +1,56 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.saeed.chandwidget'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.saeed.chandwidget"
+        minSdk 26
+        targetSdk 34
+        versionCode 2
+        versionName "1.1.0"
+    }
+
+    // Splits the output APK by CPU architecture so you get one small APK per
+    // device type plus a universal fallback that works everywhere:
+    //   app-arm64-v8a-release.apk   → armeabi-v8a (modern 64-bit phones)
+    //   app-armeabi-v7a-release.apk → armeabi-v7a (older 32-bit phones)
+    //   app-universal-release.apk   → all architectures, larger file
+    // The app has no native (.so) libraries today, so all three currently
+    // contain identical code — this just future-proofs the build for if/when
+    // a native dependency is added, and keeps the 3-file output Saeed wants.
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'arm64-v8a', 'armeabi-v7a'
+            universalApk true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            // NOTE: No applicationIdSuffix — widget RemoteViews requires exact package name
+            // If suffix differs from manifest package, widget crashes with "Could not load widget"
+            versionNameSuffix "-debug"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core:1.12.0'
+    implementation 'com.google.android.material:material:1.11.0'
+}
